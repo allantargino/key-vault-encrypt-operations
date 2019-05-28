@@ -3,27 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 type AzureConfiguration struct {
 	ClientID              string
 	ClientSecret          string
-	SubscriptionID        string
 	TenantID              string
 	KeyVaultKeyIdentifier string
-}
-
-const cloudName string = "AzurePublicCloud"
-
-func Environment() *azure.Environment {
-	env, err := azure.EnvironmentFromName(cloudName)
-	if err != nil {
-		panic(fmt.Sprintf(
-			"invalid cloud name '%s' specified, cannot continue\n", cloudName))
-	}
-	return &env
 }
 
 func ParseEnvironment() (AzureConfiguration, error) {
@@ -36,12 +22,6 @@ func ParseEnvironment() (AzureConfiguration, error) {
 	if err != nil {
 		return AzureConfiguration{}, err
 	}
-
-	subscriptionID, err := getMustEnv("AZURE_SUBSCRIPTION_ID")
-	if err != nil {
-		return AzureConfiguration{}, err
-	}
-
 	tenantID, err := getMustEnv("AZURE_TENANT_ID")
 	if err != nil {
 		return AzureConfiguration{}, err
@@ -52,7 +32,7 @@ func ParseEnvironment() (AzureConfiguration, error) {
 		return AzureConfiguration{}, err
 	}
 
-	return AzureConfiguration{clientID, clientSecret, subscriptionID, tenantID, KeyVaultKeyIdentifier}, nil
+	return AzureConfiguration{clientID, clientSecret, tenantID, KeyVaultKeyIdentifier}, nil
 }
 
 func getMustEnv(key string) (string, error) {

@@ -11,9 +11,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
-const kvClientUserAgent = "terraform-remote-state"
+const (
+	kvClientUserAgent = "terraform-remote-state"
+	cloudName         = "AzurePublicCloud"
+)
 
 type KeyVaultKeyInfo struct {
 	vaultURL   string
@@ -46,16 +50,25 @@ func NewEncryptionClient(tenantID, clientID, clientSecret, keyVaultKeyIdentifier
 	return &EncryptionClient{kvClient, kvInfo}, nil
 }
 
+func environment() *azure.Environment {
+	env, err := azure.EnvironmentFromName(cloudName)
+	if err != nil {
+		panic(fmt.Sprintf(
+			"invalid cloud name '%s' specified, cannot continue\n", cloudName))
+	}
+	return &env
+}
+
 func getKeyvaultAuthorizer(tenantID, clientID, clientSecret string) (autorest.Authorizer, error) {
 	// BUG: default value for KeyVaultEndpoint is wrong
-	vaultEndpoint := strings.TrimSuffix(Environment().KeyVaultEndpoint, "/")
+	vaultEndpoint := strings.TrimSuffix(environment().KeyVaultEndpoint, "/")
 	// BUG: alternateEndpoint replaces other endpoints in the configs below
 	alternateEndpoint, _ := url.Parse("https://login.windows.net/" + tenantID + "/oauth2/token")
 
 	var a autorest.Authorizer
 	var err error
 
-	oauthconfig, err := adal.NewOAuthConfig(Environment().ActiveDirectoryEndpoint, tenantID)
+	oauthconfig, err := adal.NewOAuthConfig(environment().ActiveDirectoryEndpoint, tenantID)
 	if err != nil {
 		return a, err
 	}

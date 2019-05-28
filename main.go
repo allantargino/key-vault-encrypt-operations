@@ -21,13 +21,13 @@ func main() {
 	}
 
 	msg := "this a (not so) random text!"
-	fmt.Println(msg)
+	fmt.Printf("msg: %s\n", msg)
 
 	encryptedText, err := client.Encrypt(ctx, []byte(msg))
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(*encryptedText)
+	fmt.Printf("enc: %s\n", *encryptedText)
 
 	decryptedText, err := client.Decrypt(ctx, encryptedText)
 	if err != nil {
@@ -36,5 +36,5 @@ func main() {
 
 	msg2 := string(decryptedText)
 
-	fmt.Println(msg == msg2)
+	fmt.Printf("eq: %t\n", msg == msg2)
 }
