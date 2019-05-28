@@ -15,12 +15,12 @@ func main() {
 		panic(err)
 	}
 
-	client, err := NewEncryptionClient(azureConfiguration)
+	client, err := NewEncryptionClientFromEnv(azureConfiguration)
 	if err != nil {
 		panic(err)
 	}
 
-	msg := "this is something to encrypt!"
+	msg := "this a (not so) random text!"
 	fmt.Println(msg)
 
 	encryptedText, err := client.Encrypt(ctx, []byte(msg))
@@ -33,5 +33,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(decryptedText))
+
+	msg2 := string(decryptedText)
+
+	fmt.Println(msg == msg2)
 }
