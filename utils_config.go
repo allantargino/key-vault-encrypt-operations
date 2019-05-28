@@ -8,11 +8,11 @@ import (
 )
 
 type AzureConfiguration struct {
-	ClientID       string
-	ClientSecret   string
-	SubscriptionID string
-	TenantID       string
-	KeyVaultUrl    string
+	ClientID              string
+	ClientSecret          string
+	SubscriptionID        string
+	TenantID              string
+	KeyVaultKeyIdentifier string
 }
 
 const cloudName string = "AzurePublicCloud"
@@ -47,12 +47,12 @@ func ParseEnvironment() (AzureConfiguration, error) {
 		return AzureConfiguration{}, err
 	}
 
-	keyVaultUrl, err := getMustEnv("AZURE_KEY_VAULT_URL")
+	KeyVaultKeyIdentifier, err := getMustEnv("AZURE_KEY_VAULT_KEY_IDENTIFIER")
 	if err != nil {
 		return AzureConfiguration{}, err
 	}
 
-	return AzureConfiguration{clientID, clientSecret, subscriptionID, tenantID, keyVaultUrl}, nil
+	return AzureConfiguration{clientID, clientSecret, subscriptionID, tenantID, KeyVaultKeyIdentifier}, nil
 }
 
 func getMustEnv(key string) (string, error) {
