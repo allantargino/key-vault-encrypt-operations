@@ -117,24 +117,37 @@ func (e *EncryptionClient) getKeyOperationsParameters(value *string) keyvault.Ke
 }
 
 func (e *EncryptionClient) Encrypt(ctx context.Context, data []byte) (*string, error) {
+	if len(data) == 0 {
+		v := ""
+		return &v, nil
+	}
+
 	encoded := base64.RawStdEncoding.EncodeToString(data)
+
 	parameters := e.getKeyOperationsParameters(&encoded)
 	result, err := e.kvClient.Encrypt(ctx, e.kvInfo.vaultURL, e.kvInfo.keyName, e.kvInfo.keyVersion, parameters)
 	if err != nil {
 		return nil, err
 	}
+
 	return result.Result, nil
 }
 
 func (e *EncryptionClient) Decrypt(ctx context.Context, data *string) ([]byte, error) {
+	if data == nil || len(*data) == 0 {
+		return make([]byte, 0), nil
+	}
+
 	parameters := e.getKeyOperationsParameters(data)
 	result, err := e.kvClient.Decrypt(ctx, e.kvInfo.vaultURL, e.kvInfo.keyName, e.kvInfo.keyVersion, parameters)
 	if err != nil {
 		return nil, err
 	}
+
 	decoded, err := base64.RawStdEncoding.DecodeString(*result.Result)
 	if err != nil {
 		return nil, err
 	}
+
 	return decoded, nil
 }
