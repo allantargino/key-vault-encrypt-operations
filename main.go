@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 )
 
 func main() {
-	println("Start!")
+	fmt.Printf("Start!\n")
 
 	ctx := context.Background()
 
@@ -20,21 +21,53 @@ func main() {
 		panic(err)
 	}
 
-	msg := "this a (not so) random text!"
-	fmt.Printf("msg: %s\n", msg)
-
-	encryptedText, err := client.Encrypt(ctx, []byte(msg))
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("enc: %s\n", *encryptedText)
-
-	decryptedText, err := client.Decrypt(ctx, encryptedText)
+	data, err := ioutil.ReadFile("./state.tfstate")
 	if err != nil {
 		panic(err)
 	}
 
-	msg2 := string(decryptedText)
+	// c := 245
+	// n := cap(data) / c
+	// for i := 0; i < n; i++ {
+	// 	data = data[0:c]
+	// 	fmt.Printf("i: %v, bytes: %v, cap: %v \n", i, len(data), cap(data))
 
-	fmt.Printf("eq: %t\n", msg == msg2)
+	// 	operate(ctx, client, data)
+
+	// 	data = data[c:]
+	// }
+	// data = data[0:cap(data)]
+	// fmt.Printf("i: %v, bytes: %v, cap: %v \n", n, len(data), cap(data))
+
+	// operate(ctx, client, data)
+
+	fmt.Printf("init: bytes: %v\n", len(data))
+
+	c := 245
+	n := len(data) / c
+	for i := 0; i < n; i++ {
+		d := data[i*c : (i+1)*c]
+		// fmt.Printf("i: %v, bytes: %v \n", i, len(d))
+		operate(ctx, client, d)
+	}
+	d := data[n*c : len(data)]
+	// fmt.Printf("f: %v, bytes: %v \n", n, len(d))
+
+	operate(ctx, client, d)
+}
+
+type operate func(context.Context, *EncryptionClient, []byte) []byte
+
+func operate(ctx context.Context, client *EncryptionClient, data []byte) {
+	encryptedData, err := client.EncryptBytes(ctx, data)
+	if err != nil {
+		panic(err)
+	}
+	// fmt.Printf("enc: %s\n", string(encryptedData))
+
+	decryptedData, err := client.DecryptBytes(ctx, encryptedData)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("data: %v\n", string(decryptedData))
 }

@@ -111,7 +111,7 @@ func parseKeyVaultKeyInfo(keyVaultKeyIdentifier string) (*KeyVaultKeyInfo, error
 
 func (e *EncryptionClient) getKeyOperationsParameters(value *string) keyvault.KeyOperationsParameters {
 	parameters := keyvault.KeyOperationsParameters{}
-	parameters.Algorithm = keyvault.RSAOAEP256
+	parameters.Algorithm = keyvault.RSA15
 	parameters.Value = value
 	return parameters
 }
@@ -139,6 +139,43 @@ func (e *EncryptionClient) Decrypt(ctx context.Context, data *string) ([]byte, e
 	}
 
 	parameters := e.getKeyOperationsParameters(data)
+	result, err := e.kvClient.Decrypt(ctx, e.kvInfo.vaultURL, e.kvInfo.keyName, e.kvInfo.keyVersion, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	decoded, err := base64.RawStdEncoding.DecodeString(*result.Result)
+	if err != nil {
+		return nil, err
+	}
+
+	return decoded, nil
+}
+
+func (e *EncryptionClient) EncryptBytes(ctx context.Context, data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return data, nil
+	}
+
+	encoded := base64.RawStdEncoding.EncodeToString(data)
+
+	parameters := e.getKeyOperationsParameters(&encoded)
+	result, err := e.kvClient.Encrypt(ctx, e.kvInfo.vaultURL, e.kvInfo.keyName, e.kvInfo.keyVersion, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(*result.Result), nil
+}
+
+func (e *EncryptionClient) DecryptBytes(ctx context.Context, data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return data, nil
+	}
+
+	str := string(data)
+
+	parameters := e.getKeyOperationsParameters(&str)
 	result, err := e.kvClient.Decrypt(ctx, e.kvInfo.vaultURL, e.kvInfo.keyName, e.kvInfo.keyVersion, parameters)
 	if err != nil {
 		return nil, err
